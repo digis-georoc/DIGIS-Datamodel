@@ -2314,15 +2314,6 @@ alter table odm2.citations
 	alter column publisher drop not null,
 	alter column publicationyear drop not null;
 
-CREATE TABLE odm2.externalidentifiersgerm (
-	citationid int4 NOT NULL,
-	reservoir varchar NULL,
-	germitem varchar NULL,
-	germitemtype varchar NULL,
-	germresvalue float8 NULL,
-	germunitid varchar NULL
-);
-
 ALTER TABLE odm2.citationexternalidentifiers
 	RENAME COLUMN externalidentifiersystemid TO externalidentifiersystemname;
 alter table odm2.citationexternalidentifiers
