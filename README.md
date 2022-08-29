@@ -9,14 +9,14 @@ The GEOROC Database (Geochemistry of Rocks of the Oceans and Continents) is a co
 
 The GEOROC Database was established at the Max Planck Institute for Chemistry in Mainz (Germany). In 2021, the database was moved to Göttingen University, where it continues to be curated as part of the [DIGIS](http://digis.geo.uni-goettingen.de) project of the Department of Geochemistry and Isotope Geology at the Geoscience Centre (GZG) and the University and State Library (SUB). Development for GEOROC 2.0 includes a new data model for greater interoperability, options to contribute data, and improved access to the database.
 
-For more information, and to access the data, visit the GEOROC website: [https://www.georoc.eu/](https://www.georoc.eu/).
+For more information, and to access the data, visit the GEOROC website: [https://georoc.eu/](https://georoc.eu/).
 
 
 ## Model Setup
 You can generate a copy of the GEOROC 2.0 data model by running the SQL script located in `/sql_scripts`.
 Note that this script is written for a PostgreSQL database - if you want to use a different database management system, you will have to adapt the script to your specific SQL dialect.
 
-This repository contains the new data model only. Visit [https://www.georoc.eu/](https://www.georoc.eu/) for access to the data held within the GEOROC database.
+This repository contains the new data model only. Visit [https://georoc.eu/](https://georoc.eu/) for access to the data held within the GEOROC database.
 
 
 ## Future Goals
