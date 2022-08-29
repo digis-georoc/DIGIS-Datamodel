@@ -1,5 +1,5 @@
 # DIGIS Data Model
-The data model of the GEOROC 2.0 database, developed within the [DIGIS](http://digis.geo.uni-goettingen.de) project. A simplified overview of the schema can be found in GEOROC2.0_v1.0_schema.pdf.
+The data model of the GEOROC 2.0 database, developed within the [DIGIS](http://digis.geo.uni-goettingen.de) project. A simplified overview of the schema can be found in GEOROC2.0_schema.pdf.
 
 The model is based on the Observations Data Model Version 2 (ODM2; [Horsburgh et al., 2016](http://dx.doi.org/10.1016/j.envsoft.2016.01.010)) with minor modifications in accordance with the PetDB use case ([Hsu et al. 2017](http://dx.doi.org/10.5334/dsj-2017-004)) and the [EarthChem](https://earthchem.org/) ECDB model. For more information on ODM2 visit [https://www.odm2.org/](https://www.odm2.org/).
 
