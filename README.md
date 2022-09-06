@@ -11,6 +11,8 @@ The GEOROC Database was established at the Max Planck Institute for Chemistry in
 
 For more information, and to access the data, visit the GEOROC website: [https://georoc.eu/](https://georoc.eu/).
 
+DIGIS is funded through the Scientific Library Services and Information Systems (LIS) programme of the German Research Foundation (DFG, grant number: [437919684](https://gepris.dfg.de/gepris/projekt/437919684?language=en)).
+
 
 ## Model Setup
 You can generate a copy of the GEOROC 2.0 data model by running the SQL script located in `/sql_scripts`.
@@ -22,4 +24,4 @@ This repository contains the new data model only. Visit [https://georoc.eu/](htt
 ## Future Goals
 We are working on an API, based upon this data model, to allow native access to the GEOROC data holdings and to facilitate seamless data exchange with our partners at EarthChem as well as other geochemical data systems.
 
-For any questions or if you would like to get involved, get in touch via email: digis-info@uni-goettingen.de
+For any questions or if you would like to get involved, get in touch via email: digis-info@uni-goettingen.de.
