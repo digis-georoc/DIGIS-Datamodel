@@ -2504,6 +2504,14 @@ create table odm2.GeologicalSettings(
     SettingName varchar not null
 );
 
+-- new table unitcorrectedvalues
+create table UnitCorrectedValues(
+	ValueID int not null primary key,
+	DataValue float not null,
+	UnitID int not null,
+	VariableID int not null
+);
+
 -- Drop unused tables
 drop table odm2.actiondirectives cascade;
 drop table odm2.actionextensionpropertyvalues cascade;
