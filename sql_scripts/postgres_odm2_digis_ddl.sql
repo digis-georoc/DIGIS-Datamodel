@@ -1,9 +1,19 @@
-SET search_path = odm2,public,postgis;
+/*******************************************************/
+/***************** Postgis preparations ****************/
+/*******************************************************/
 
-CREATE EXTENSION if not exists postgis;
-CREATE EXTENSION if not exists postgis_topology;
-CREATE EXTENSION if not exists fuzzystrmatch;
-CREATE EXTENSION if not exists postgis_tiger_geoCoder;
+CREATE SCHEMA if not exists public;
+CREATE SCHEMA if not exists postgis;
+CREATE SCHEMA if not exists topology;
+CREATE SCHEMA if not exists tiger;
+
+SET search_path = odm2,public,postgis,topology,tiger;
+
+CREATE EXTENSION if not exists postgis WITH SCHEMA public;
+CREATE EXTENSION if not exists postgis_topology WITH SCHEMA topology;
+CREATE EXTENSION if not exists fuzzystrmatch WITH SCHEMA public;
+CREATE EXTENSION if not exists postgis_tiger_geoCoder WITH SCHEMA tiger;
+
 
 drop schema if exists ODM2 cascade;
 
@@ -2310,16 +2320,10 @@ alter table odm2.citations
 	add lastPage varchar(255) null,
 	add bookTitle varchar(255) null,
 	add editors varchar(255) null,
-	alter column title drop not null,
-	alter column publisher drop not null,
-	alter column publicationyear drop not null;
+	alter column publisher drop not null;
 
-ALTER TABLE odm2.citationexternalidentifiers
-	RENAME COLUMN externalidentifiersystemid TO externalidentifiersystemname;
-alter table odm2.citationexternalidentifiers
-	drop constraint fk_citationexternalidentifiers_externalidentifiersystems;
-ALTER TABLE odm2.citationexternalidentifiers
-	ALTER COLUMN externalidentifiersystemname TYPE varchar(255) USING externalidentifiersystemname::varchar;
+alter table odm2.externalidentifiersystems
+    drop column identifiersystemorganizationid;
 
 -- Paket3: Locations & Samples
 ALTER TABLE odm2.Sites
@@ -2327,13 +2331,14 @@ ALTER TABLE odm2.Sites
 	alter column latitude drop not null,
 	alter column spatialreferenceid drop not null,
 	ADD locationprecision int4 NULL,
-	ADD locationcomment varchar(255) null,
+	ADD locationprecisioncomment varchar(255) null,
 	add sitedescription varchar(255) null,
 	add setting varchar(255) null;
 
 CREATE TABLE odm2.geolocations (
 	geolocationid serial primary key,
-	geolocationtype varchar NOT NULL
+	geolocationtype varchar NOT NULL,
+	locationhierarchy integer NULL
 );
 
 CREATE TABLE odm2.sitegeolocations (
@@ -2362,46 +2367,33 @@ alter table odm2.samplingfeatures
     alter column samplingfeaturecode drop not null,
     alter column samplingfeatureuuid drop not null,
     add ElevationPrecision float null,
-    add ElevationComment varchar(255) null;
+    add ElevationPrecisionComment varchar(255) null;
+
+alter table odm2.specimentaxonomicclassifiers add column SpecimenTaxonomicClassifierType varchar not null;
 
 
 -- Paket4: Expeditions & Methods
 alter table odm2.methods
 	drop column OrganizationID;
 
-alter table odm2.equipment
-	alter column equipmentcode drop not null,
-	alter column equipmenttypecv drop not null,
-	alter column equipmentmodelid drop not null,
-	alter column equipmentserialnumber drop not null,
-	alter column equipmentownerid drop not null,
-	alter column equipmentvendorid drop not null,
-	alter column equipmentpurchasedate drop not null;
-
 alter table odm2.actions
 	alter column begindatetime drop not null,
 	alter column enddatetime drop not null,
 	alter column begindatetimeUTCOffset drop not null,
 	alter column enddatetimeUTCOffset drop not null,
-	add column ActionCitation int4 null;
-
-ALTER TABLE odm2.actions ADD equipmenttypecv varchar NULL;
-ALTER TABLE odm2.actions ADD equipmentname varchar NULL;
-ALTER TABLE odm2.actions ADD CONSTRAINT actions_fk FOREIGN KEY (equipmenttypecv) REFERENCES odm2.cv_equipmenttype(name) ON DELETE CASCADE;
+	add column ActionCitation int4 null,
+	ADD column equipmenttypecv varchar NULL,
+	ADD column equipmentname varchar NULL,
+    ADD CONSTRAINT actions_fk FOREIGN KEY (equipmenttypecv) REFERENCES odm2.cv_equipmenttype(name) ON DELETE CASCADE;
 
 alter table odm2.actionby
-    add column PersonID varchar null,
-    add column OrganizationID varchar null;
-
-drop table odm2.equipment CASCADE;
+    add column PersonID int null,
+    add column OrganizationID int null;
 
 -- Paket5: Chemistry & Analyses
 alter table odm2.variables --maybe revert this for prod
 	alter column VariableNameCV drop not null,
-
-	alter column SpeciationCV drop not null;
-
-alter table odm2.variables
+	alter column SpeciationCV drop not null,
 	add column VariableTypeCode varchar not null,
 	drop constraint variables_variablecode_key;
 
@@ -2413,14 +2405,19 @@ alter table odm2.datasets
 	alter column datasettitle drop not null,
 	alter column datasetabstract drop not null;
 
+create table odm2.DatasetExternalIdentifiers(
+    BridgeID serial  NOT NULL primary key,
+	DatasetID integer  NOT NULL,
+	ExternalIdentifierSystemID integer NOT NULL,
+	DatasetExternalIdentifier varchar(255) NOT NULL,
+	DatasetExternalIdentifierURI varchar(255) NOT NULL
+);
+
 alter table odm2.measurementresultvalues
 	alter column ValueDateTime drop not null,
 	alter column ValueDateTimeUTCOffset drop not null,
-	add column DataError float8 null,
-	add column DataErrorType varchar(255) null,
 	drop column ResultID;
 
-drop table odm2.measurementresults cascade;
 
 alter table odm2.resultannotations
 	alter column begindatetime drop not null,
@@ -2431,18 +2428,18 @@ alter table odm2.results
 
 -- Paket6: Standards
 alter table odm2.referencematerials
-	alter column referencematerialmediumcv drop not null,
-	alter column referencematerialorganizationid drop not null;
+	drop column referencematerialmediumcv,
+	drop column referencematerialorganizationid;
 
 alter table odm2.dataquality
-	add column comment varchar null;
-alter table odm2.dataquality
+	add column dataqualitycomment varchar null,
 	alter column dataqualitycode drop not null;
 
 
 alter table odm2.results
 alter column processinglevelid drop not null,
 alter column variableid drop not null,
+alter column unitsid drop not null,
 alter column sampledmediumcv drop not null,
 alter column featureactionid drop not null,
 alter column resultuuid drop not null;
@@ -2463,18 +2460,126 @@ create table odm2.ActionsFractCorrect(
 	FractCorrectID int not null
 );
 
-alter table odm2.relatedresults
-    add column RelationDescription varchar(255) not null;
+create table ODM2.ReferenceMaterialValueAnnotations (
+	bridgeid serial  NOT NULL primary key,
+	valueid bigint  NOT NULL,
+	annotationid integer  NOT NULL
+);
 
+create table odm2.Standards(
+	StandardID int primary key,
+	ActionID int not null,
+	StandardVariable varchar(255),
+	StandardName varchar(255),
+	StandardValue float8,
+	DataQualityTypeCV varchar(255),
+	DataQualityValue float8,
+	DataQualityDescription varchar(255),
+	UnitsID int
+);
 
+-- new table citationsamplingfeatures
+create table odm2.citationsamplingfeatures(
+	bridgeid serial  NOT NULL primary key,
+	citationid integer  NOT NULL,
+	samplingfeatureid integer  NOT NULL
+);
 
+-- new table sitegeometries
+create table odm2.sitegeometries(
+    samplingfeatureid int4,
+    geometry geometry
+);
 
+-- new table SiteGeologicalSettings
+create table odm2.SiteGeologicalSettings(
+    BridgeID serial not null primary key,
+    SamplingFeatureID integer not null,
+    SettingID integer not null
+);
 
+-- new table GeologicalSettings
+create table odm2.GeologicalSettings(
+    SettingID serial not null primary key,
+    SettingName varchar not null
+);
 
-
-
-
-
-
-
-
+-- Drop unused tables
+drop table odm2.actiondirectives cascade;
+drop table odm2.actionextensionpropertyvalues cascade;
+drop table odm2.calibrationactions cascade;
+drop table odm2.calibrationreferenceequipment cascade;
+drop table odm2.calibrationstandards cascade;
+drop table odm2.categoricalresults cascade;
+drop table odm2.categoricalresultvalueannotations cascade;
+drop table odm2.categoricalresultvalues cascade;
+drop table odm2.citationextensionpropertyvalues cascade;
+drop table odm2.cv_aggregationstatistic cascade;
+drop table odm2.cv_censorcode cascade;
+drop table odm2.cv_directivetype cascade;
+drop table odm2.cv_propertydatatype cascade;
+drop table odm2.cv_qualitycode cascade;
+drop table odm2.cv_spatialoffsettype cascade;
+drop table odm2.cv_speciation cascade;
+drop table odm2.cv_variablename cascade;
+drop table odm2.dataloggerfilecolumns cascade;
+drop table odm2.dataloggerfiles cascade;
+drop table odm2.dataloggerprogramfiles cascade;
+drop table odm2.derivationequations cascade;
+drop table odm2.directives cascade;
+drop table odm2.equipment cascade;
+drop table odm2.equipmentannotations cascade;
+drop table odm2.equipmentmodels cascade;
+drop table odm2.equipmentused cascade;
+drop table odm2.extensionproperties cascade;
+drop table odm2.instrumentoutputvariables cascade;
+drop table odm2.maintenanceactions cascade;
+drop table odm2.measurementresults cascade;
+drop table odm2.measurementresultvalueannotations cascade;
+drop table odm2.methodannotations cascade;
+drop table odm2.methodextensionpropertyvalues cascade;
+drop table odm2.methodexternalidentifiers cascade;
+drop table odm2.modelaffiliations cascade;
+drop table odm2.models cascade;
+drop table odm2.personexternalidentifiers cascade;
+drop table odm2.pointcoverageresults cascade;
+drop table odm2.pointcoverageresultvalueannotations cascade;
+drop table odm2.pointcoverageresultvalues cascade;
+drop table odm2.profileresults cascade;
+drop table odm2.profileresultvalueannotations cascade;
+drop table odm2.profileresultvalues cascade;
+drop table odm2.referencematerialexternalidentifiers cascade;
+drop table odm2.relatedactions cascade;
+drop table odm2.relatedannotations cascade;
+drop table odm2.relatedcitations cascade;
+drop table odm2.relateddatasets cascade;
+drop table odm2.relatedequipment cascade;
+drop table odm2.relatedmodels cascade;
+drop table odm2.relatedresults cascade;
+drop table odm2.resultderivationequations cascade;
+drop table odm2.resultextensionpropertyvalues cascade;
+drop table odm2.samplingfeatureextensionpropertyvalues cascade;
+drop table odm2.samplingfeatureexternalidentifiers cascade;
+drop table odm2.sectionresults cascade;
+drop table odm2.sectionresultvalueannotations cascade;
+drop table odm2.sectionresultvalues cascade;
+drop table odm2.simulations cascade;
+drop table odm2.spatialoffsets cascade;
+drop table odm2.spatialreferenceexternalidentifiers cascade;
+drop table odm2.spatialreferences cascade;
+drop table odm2.specimenbatchpostions cascade; -- yes this is a typo in the original name
+drop table odm2.spectraresults cascade;
+drop table odm2.spectraresultvalueannotations cascade;
+drop table odm2.spectraresultvalues cascade;
+drop table odm2.taxonomicclassifierexternalidentifiers cascade;
+drop table odm2.timeseriesresults cascade;
+drop table odm2.timeseriesresultvalueannotations cascade;
+drop table odm2.timeseriesresultvalues cascade;
+drop table odm2.trajectoryresults cascade;
+drop table odm2.trajectoryresultvalueannotations cascade;
+drop table odm2.trajectoryresultvalues cascade;
+drop table odm2.transectresults cascade;
+drop table odm2.transectresultvalueannotations cascade;
+drop table odm2.transectresultvalues cascade;
+drop table odm2.variableextensionpropertyvalues cascade;
+drop table odm2.variableexternalidentifiers cascade;
