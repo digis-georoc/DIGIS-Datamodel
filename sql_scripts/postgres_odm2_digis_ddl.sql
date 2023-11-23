@@ -2505,7 +2505,7 @@ create table odm2.GeologicalSettings(
 );
 
 -- new table unitcorrectedvalues
-create table UnitCorrectedValues(
+create table odm2.UnitCorrectedValues(
 	ValueID int not null primary key,
 	DataValue float not null,
 	UnitID int not null,
