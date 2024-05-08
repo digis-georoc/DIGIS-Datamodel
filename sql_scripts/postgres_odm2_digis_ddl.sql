@@ -2320,6 +2320,7 @@ alter table odm2.citations
 	add lastPage varchar(255) null,
 	add bookTitle varchar(255) null,
 	add editors varchar(255) null,
+    add created_at timestamp not null default now(),
 	alter column publisher drop not null;
 
 alter table odm2.externalidentifiersystems
@@ -2504,12 +2505,16 @@ create table odm2.GeologicalSettings(
     SettingName varchar not null
 );
 
--- new table unitcorrectedvalues
-create table odm2.UnitCorrectedValues(
-	ValueID int not null primary key,
+-- new table normalizedchemistry
+create table odm2.NormalizedChemistry(
+	ValueID serial not null primary key,
+	VariableCode varchar(8) not null,
+	VariableTypeCode varchar(8) not null,
+	Unit varchar(16) not null,
 	DataValue float not null,
-	UnitID int not null,
-	VariableID int not null
+	Method varchar not null,
+	BatchID int not null,
+	SampleID int not null
 );
 
 -- Drop unused tables
