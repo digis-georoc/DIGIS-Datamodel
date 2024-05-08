@@ -6,7 +6,7 @@ The model is based on the Observations Data Model Version 2 (ODM2; [Horsburgh et
 Latest release also available on Zenodo: <br>
 [![DOI](https://zenodo.org/badge/501289148.svg)](https://zenodo.org/doi/10.5281/zenodo.10468216)
 <br>
-Cite as: Klöcking, M., & Sturm, A. (2024). DIGIS Data Model for GEOROC 2.0 (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10468217
+Cite as: Klöcking, M., & Sturm, A. (2024). DIGIS Data Model for GEOROC 2.0 (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10468216
 
 ## The GEOROC Database
 The GEOROC Database (Geochemistry of Rocks of the Oceans and Continents) is a comprehensive collection of published analyses of igneous and metamorphic rocks and minerals. It contains major and trace element concentrations, radiogenic and nonradiogenic isotope ratios as well as analytical ages for whole rocks, glasses, minerals and inclusions. Metadata include geospatial and other sample information, analytical details and references.
